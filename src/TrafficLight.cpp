@@ -69,25 +69,31 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
+
+	double random_max = 6.0;
+	double random_min = 4.0;
 	
-	std::chrono::time_point<std::chrono::system_clock> t_start, t_end;
+	std::chrono::time_point<std::chrono::system_clock> t_start;
 	t_start = std::chrono::system_clock::now();
-	long long_duration;
-	long long_randomTp = RandomTimeCalc();
-	std::cout<<"long_randomTp: "<<long_randomTp<<std::endl;
+	
+	std::random_device rd;
+	std::mt19937 eng(rd());
+	std::uniform_int_distribution<> distr(random_min,random_max);
+	
+	long long_randomTp = distr(eng)*1000;
+	
 	while(1){
 		
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));	
-		
+
 		// time calculate 
-		t_end = std::chrono::system_clock::now();
-		long_duration = (t_end - t_start).count()*1000;
-		std::cout<<"long_duration: "<<long_duration<<std::endl;
+		// std::cout<<"long_duration: "<<long_duration<<std::endl;
 		
 		// if the time reaches the random time point, between 4ms - 6ms
-		if (long_duration >= long_randomTp){
+		if ((std::chrono::system_clock::now()-t_start).count()/1000 >= long_randomTp){
 			// random Time, start Time re-calc
 			t_start = std::chrono::system_clock::now();
+			long_randomTp = distr(eng)*1000;
 			
 			_currentPhase = (_currentPhase == TrafficLightPhase::red)?TrafficLightPhase::green:TrafficLightPhase::red;
 			
