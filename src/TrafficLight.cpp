@@ -90,7 +90,7 @@ void TrafficLight::cycleThroughPhases()
 		// std::cout<<"long_duration: "<<long_duration<<std::endl;
 		
 		// if the time reaches the random time point, between 4ms - 6ms
-		if ((std::chrono::system_clock::now()-t_start).count()/1000 >= long_randomTp){
+		if ((std::chrono::system_clock::now()-t_start).count() >= long_randomTp){
 			// random Time, start Time re-calc
 			t_start = std::chrono::system_clock::now();
 			long_randomTp = distr(eng)*1000;
