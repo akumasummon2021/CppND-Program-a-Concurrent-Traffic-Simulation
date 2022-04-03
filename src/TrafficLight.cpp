@@ -23,6 +23,8 @@ void MessageQueue<T>::send(T &&msg)
 {
     // FP.4a : The method send should use the mechanisms 
 	
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	
 	std::lock_guard<std::mutex> lck(_mutex);
 	_queue.emplace_back(std::move(msg));
 	
@@ -59,6 +61,8 @@ TrafficLightPhase TrafficLight::getCurrentPhase()
 void TrafficLight::simulate()
 {
     // FP.2b : Finally, the private method „cycleThroughPhases“ should be started in a thread when the public method „simulate“ is called. To do this, use the thread queue in the base class. 
+	
+	// there is only one thread in the queue
 	threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 }
 
@@ -74,23 +78,27 @@ void TrafficLight::cycleThroughPhases()
 	double random_min = 4.0;
 	
 	std::chrono::time_point<std::chrono::system_clock> t_start;
-	t_start = std::chrono::system_clock::now();
-	
-	std::random_device rd;
-	std::mt19937 eng(rd());
-	std::uniform_int_distribution<> distr(random_min,random_max);
-	
-	long long_randomTp = distr(eng)*1000;
+	t_start = std::chrono::system_clock::now();	
+	long long_randomTp;
 	
 	while(1){
 		
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));	
-
+		//std::unique_lock<std::mutex> lck(_mutex);
+				
+		std::random_device rd;
+		std::mt19937 eng(rd());
+		std::uniform_int_distribution<> distr(random_min,random_max);
+		
+		long_randomTp = distr(eng)*1000;		
+		
 		// time calculate 
 		// std::cout<<"long_duration: "<<long_duration<<std::endl;
 		
+		long sinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t_start).count();		
+		
 		// if the time reaches the random time point, between 4ms - 6ms
-		if ((std::chrono::system_clock::now()-t_start).count() >= long_randomTp){
+		if (sinceLastUpdate >= long_randomTp){
 			// random Time, start Time re-calc
 			t_start = std::chrono::system_clock::now();
 			long_randomTp = distr(eng)*1000;
@@ -100,17 +108,6 @@ void TrafficLight::cycleThroughPhases()
 			// sends an update method to the message queue using move semantics
 			_message.send(std::move(_currentPhase));
 		}
+		
 	}
 }
-
-long TrafficLight::RandomTimeCalc(){
-	// duration, ms
-	int random_max = 6000;
-	int random_min = 4000;
-	
-	std::random_device rd;
-	std::mt19937 eng(rd());
-	std::uniform_int_distribution<> distr(random_min,random_max);
-	return distr(eng);	
-}
-
